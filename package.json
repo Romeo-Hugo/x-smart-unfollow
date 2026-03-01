@@ -1,0 +1,50 @@
+{
+  "name": "x-smart-unfollow",
+  "version": "1.0.0",
+  "description": "智能X平台关注管理器 - 批量取关Crypto博主",
+  "main": "background.js",
+  "scripts": {
+    "test": "echo \"打开 test-page.html 进行测试\" && exit 0",
+    "build": "echo \"构建生产版本...\" && node scripts/build.js",
+    "pack": "zip -r x-smart-unfollow.zip . -x '*.git*' 'node_modules/*' '*.DS_Store'",
+    "lint": "eslint . --ext .js",
+    "format": "prettier --write '**/*.{js,html,css,json}'"
+  },
+  "keywords": [
+    "chrome-extension",
+    "x-twitter",
+    "unfollow",
+    "crypto",
+    "ai-analysis",
+    "productivity"
+  ],
+  "author": "X Smart Unfollow Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/x-smart-unfollow.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/x-smart-unfollow/issues"
+  },
+  "homepage": "https://github.com/yourusername/x-smart-unfollow#readme",
+  "devDependencies": {
+    "eslint": "^8.55.0",
+    "prettier": "^3.1.0"
+  },
+  "files": [
+    "manifest.json",
+    "popup.html",
+    "popup.js",
+    "content.js",
+    "background.js",
+    "styles.css",
+    "icons/",
+    "test-page.html",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}

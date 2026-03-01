@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X Smart Unfollow</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            width: 400px;
+            padding: 16px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .logo {
+            width: 32px;
+            height: 32px;
+            margin-right: 12px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #1DA1F2, #794BC4);
+        }
+        .title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        .subtitle {
+            font-size: 12px;
+            color: #666;
+            margin-top: 2px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #1DA1F2, #794BC4);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .button.secondary {
+            background: #f0f0f0;
+            color: #333;
+            margin-top: 8px;
+        }
+        .status {
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+        .status-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #333;
+        }
+        .status-desc {
+            color: #666;
+            line-height: 1.4;
+        }
+        .progress {
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            margin: 12px 0;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #1DA1F2, #794BC4);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .results {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 8px;
+        }
+        .result-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        .checkbox {
+            margin-right: 12px;
+        }
+        .username {
+            font-weight: 500;
+            color: #333;
+        }
+        .confidence {
+            margin-left: auto;
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        .confidence.low {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .confidence.medium {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #666;
+            margin-top: 12px;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 11px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo"></div>
+        <div>
+            <div class="title">X Smart Unfollow</div>
+            <div class="subtitle">智能关注管理器</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">快速分析</div>
+        <div class="status">
+            <div class="status-title">准备分析</div>
+            <div class="status-desc">点击下方按钮开始分析当前页面的关注列表，识别Crypto领域博主</div>
+        </div>
+        
+        <button id="analyzeBtn" class="button">
+            🚀 开始分析关注列表
+        </button>
+        
+        <div class="progress" id="progressContainer" style="display: none;">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+    </div>
+
+    <div class="section" id="resultsSection" style="display: none;">
+        <div class="section-title">分析结果</div>
+        <div class="stats">
+            <span>找到 <span id="totalCount">0</span> 个博主</span>
+            <span>建议取关: <span id="suggestedCount">0</span> 个</span>
+        </div>
+        <div class="results" id="resultsList">
+            <!-- 结果动态插入 -->
+        </div>
+        
+        <button id="unfollowBtn" class="button secondary" disabled>
+            ⚡ 批量取关选中博主 (<span id="selectedCount">0</span>)
+        </button>
+    </div>
+
+    <div class="footer">
+        v1.0.0 • 本地分析 + 云端增强 • 安全可控
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
