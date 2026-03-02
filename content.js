@@ -201,12 +201,11 @@ async function analyzeUserWithAI(user) {
         };
     }
     
-    // 先进行用户名快速分析（提高常见Crypto用户名的准确率）
+    // 1. 先进行用户名快速分析
     const usernameAnalysis = analyzeUsernameForCrypto(user.username);
     if (usernameAnalysis.isLikelyCrypto) {
         console.log(`用户名分析: @${user.username} 很可能是Crypto博主`);
         
-        // 对于明显是Crypto的用户名，直接返回高置信度结果
         return {
             username: user.username,
             displayName: user.displayName,
@@ -215,6 +214,23 @@ async function analyzeUserWithAI(user) {
             reasons: usernameAnalysis.reasons,
             analysis: '基于用户名分析判断为Crypto博主',
             source: 'username_analysis',
+            element: user.element
+        };
+    }
+    
+    // 2. 进行显示名称分析
+    const displayNameAnalysis = analyzeDisplayNameForCrypto(user.displayName);
+    if (displayNameAnalysis.isLikelyCrypto) {
+        console.log(`显示名称分析: "${user.displayName}" 很可能是Crypto博主`);
+        
+        return {
+            username: user.username,
+            displayName: user.displayName,
+            confidence: displayNameAnalysis.confidence,
+            isCrypto: true,
+            reasons: displayNameAnalysis.reasons,
+            analysis: '基于显示名称分析判断为Crypto博主',
+            source: 'displayname_analysis',
             element: user.element
         };
     }
@@ -310,30 +326,103 @@ function analyzeUsernameForCrypto(username) {
     };
 }
 
-// 构建DeepSeek提示词
+// 分析显示名称是否包含Crypto相关词汇
+function analyzeDisplayNameForCrypto(displayName) {
+    if (!displayName || displayName.trim().length === 0) {
+        return {
+            isLikelyCrypto: false,
+            confidence: 0,
+            reasons: []
+        };
+    }
+    
+    const displayNameLower = displayName.toLowerCase();
+    
+    // Crypto相关显示名称关键词
+    const cryptoDisplayNamePatterns = [
+        // 英文关键词
+        { pattern: /crypto/i, score: 85, reason: '显示名称包含"crypto"' },
+        { pattern: /bitcoin|btc/i, score: 90, reason: '显示名称包含比特币相关' },
+        { pattern: /ethereum|eth/i, score: 90, reason: '显示名称包含以太坊相关' },
+        { pattern: /blockchain/i, score: 80, reason: '显示名称包含"blockchain"' },
+        { pattern: /nft/i, score: 85, reason: '显示名称包含"nft"' },
+        { pattern: /defi/i, score: 85, reason: '显示名称包含"defi"' },
+        { pattern: /web3/i, score: 85, reason: '显示名称包含"web3"' },
+        { pattern: /mining|挖矿/i, score: 80, reason: '显示名称包含挖矿相关' },
+        { pattern: /trader|交易/i, score: 75, reason: '显示名称包含交易相关' },
+        { pattern: /investor|投资/i, score: 75, reason: '显示名称包含投资相关' },
+        { pattern: /analyst|分析/i, score: 75, reason: '显示名称包含分析相关' },
+        
+        // 中文关键词
+        { pattern: /蓝狐/i, score: 85, reason: '显示名称包含"蓝狐"（知名Crypto媒体）' },
+        { pattern: /笔记/i, score: 70, reason: '显示名称包含"笔记"（可能为Crypto笔记）' },
+        { pattern: /币圈/i, score: 90, reason: '显示名称包含"币圈"' },
+        { pattern: /区块链/i, score: 85, reason: '显示名称包含"区块链"' },
+        { pattern: /加密/i, score: 85, reason: '显示名称包含"加密"' },
+        { pattern: /数字货币/i, score: 85, reason: '显示名称包含"数字货币"' },
+        { pattern: /去中心化/i, score: 80, reason: '显示名称包含"去中心化"' },
+        { pattern: /代币/i, score: 85, reason: '显示名称包含"代币"' },
+        { pattern: /钱包/i, score: 80, reason: '显示名称包含"钱包"' },
+        { pattern: /交易所/i, score: 80, reason: '显示名称包含"交易所"' },
+        
+        // 组合模式
+        { pattern: /蓝狐笔记/i, score: 95, reason: '显示名称是"蓝狐笔记"（知名中文Crypto媒体）' }
+    ];
+    
+    // 检查所有模式
+    for (const { pattern, score, reason } of cryptoDisplayNamePatterns) {
+        if (pattern.test(displayNameLower)) {
+            return {
+                isLikelyCrypto: true,
+                confidence: score,
+                reasons: [reason]
+            };
+        }
+    }
+    
+    return {
+        isLikelyCrypto: false,
+        confidence: 0,
+        reasons: []
+    };
+}
+
+// 构建DeepSeek提示词（无简介优化版）
 function buildDeepSeekPrompt(user) {
     return `你是一个专业的加密货币领域分析师。请分析以下X（原Twitter）博主是否为加密货币/区块链领域的博主。
 
+重要：X页面不显示用户简介，你只能基于用户名和显示名称分析。
+
 博主信息：
-- 用户名：@${user.username}（请分析用户名是否包含Crypto相关含义）
+- 用户名：@${user.username}
 - 显示名称：${user.displayName || '无'}
-- 个人简介：${user.description || '无'}
+- 个人简介：无（X页面不显示）
 
 分析要求：
-1. 判断是否为加密货币领域博主（是/否）
-2. 给出置信度（0-100%，综合考虑用户名、显示名称和简介）
-3. 列出主要判断依据（1-3条关键证据）
-4. 特别关注以下信号：
-   - 用户名中包含：crypto、btc、eth、coin、token、wallet、mining、exchange等
-   - 显示名称中包含加密货币相关词汇
-   - 简介中提到：比特币、以太坊、ETH、BTC、区块链、加密货币、Crypto、NFT、DeFi、Web3、挖矿、交易所、数字货币、代币
+1. 仔细分析用户名是否包含加密货币相关词汇、缩写或变体
+2. 分析显示名称是否暗示加密货币领域
+3. 如果信息不足，请给出较低置信度（<50%）
+4. 如果信息明确，请给出较高置信度（>70%）
 
-重要分析原则：
-1. 如果用户名明显包含Crypto相关词汇（如包含btc、eth、crypto等），即使简介为空，也应给出较高置信度
-2. 如果所有信息都不明确，请给出较低置信度（<50%）
-3. 考虑用户名可能是Crypto相关的缩写或变体（如lanhubiji可能是蓝狐币记）
+特别注意以下加密货币信号：
 
-请用以下JSON格式回复，不要添加其他内容：
+【用户名分析】
+- 英文关键词：crypto, btc, eth, coin, token, wallet, mining, exchange, defi, nft, web3
+- 中文拼音/变体：lanhu（蓝狐）, hubiji（笔记）, bi（币）, lian（链）
+- 常见缩写：xrp, ada, sol, dot, avax, matic, doge
+- 组合模式：lanhubiji（蓝狐笔记）, btcwhale, ethmaxi
+
+【显示名称分析】
+- 中文关键词：蓝狐、笔记、币圈、区块链、加密、数字货币、去中心化、挖矿
+- 英文关键词：Crypto, Bitcoin, Ethereum, Blockchain, NFT, DeFi, Web3
+- 行业身份： trader（交易员）, analyst（分析师）, investor（投资者）, builder（建设者）
+
+【特殊案例】
+- "lanhubiji" = 蓝狐笔记（知名中文加密货币媒体）
+- 用户名包含"eth"/"btc"等明确信号
+- 显示名称包含"web3"/"区块链"等明确信号
+
+请用以下JSON格式回复，不要添加任何其他内容：
 {
   "is_crypto": true/false,
   "confidence": 0-100,

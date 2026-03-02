@@ -169,7 +169,18 @@ document.addEventListener('DOMContentLoaded', function() {
         // 构建HTML内容
         const confidenceColor = getConfidenceColor(result.confidence);
         const cryptoText = result.isCrypto ? '是' : '否';
-        const sourceText = result.source === 'deepseek' ? '🤖 AI分析' : '⚠️ 降级分析';
+        
+        // 根据分析来源显示不同的图标
+        let sourceText = '';
+        if (result.source === 'deepseek') {
+            sourceText = '🤖 AI分析';
+        } else if (result.source === 'username_analysis') {
+            sourceText = '👤 用户名分析';
+        } else if (result.source === 'displayname_analysis') {
+            sourceText = '📝 显示名称分析';
+        } else {
+            sourceText = '⚠️ 降级分析';
+        }
         
         div.innerHTML = `
             <div class="result-header">
