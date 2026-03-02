@@ -1,168 +1,282 @@
-// X Smart Unfollow - 弹出窗口逻辑
+// X Smart Unfollow - 弹出窗口（AI分析版本）
 document.addEventListener('DOMContentLoaded', function() {
+    // 获取DOM元素
     const analyzeBtn = document.getElementById('analyzeBtn');
     const unfollowBtn = document.getElementById('unfollowBtn');
-    const progressContainer = document.getElementById('progressContainer');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const resultsDiv = document.getElementById('results');
+    const progressDiv = document.getElementById('progress');
     const progressBar = document.getElementById('progressBar');
-    const resultsSection = document.getElementById('resultsSection');
-    const resultsList = document.getElementById('resultsList');
-    const totalCount = document.getElementById('totalCount');
-    const suggestedCount = document.getElementById('suggestedCount');
-    const selectedCount = document.getElementById('selectedCount');
-
+    const progressText = document.getElementById('progressText');
+    const statusDiv = document.getElementById('status');
+    
+    // 分析结果存储
     let analysisResults = [];
-    let selectedUsernames = new Set();
-
+    let selectedUsers = new Set();
+    
+    // 初始化
+    updateUI();
+    
     // 分析按钮点击事件
     analyzeBtn.addEventListener('click', async function() {
+        console.log('开始分析...');
+        
+        // 重置状态
+        analysisResults = [];
+        selectedUsers.clear();
+        resultsDiv.innerHTML = '';
+        statusDiv.textContent = '正在分析中...';
+        progressDiv.style.display = 'block';
         analyzeBtn.disabled = true;
-        analyzeBtn.textContent = '分析中...';
-        progressContainer.style.display = 'block';
+        unfollowBtn.disabled = true;
+        
+        try {
+            // 获取当前活跃的X标签页
+            const [tab] = await chrome.tabs.query({ 
+                active: true, 
+                currentWindow: true,
+                url: ['*://*.x.com/*', '*://*.twitter.com/*']
+            });
+            
+            if (!tab) {
+                statusDiv.textContent = '错误：请在X关注页面使用此插件';
+                analyzeBtn.disabled = false;
+                return;
+            }
+            
+            // 发送分析请求到内容脚本
+            const response = await chrome.tabs.sendMessage(tab.id, { action: 'analyze' });
+            
+            if (response.success) {
+                analysisResults = response.results;
+                statusDiv.textContent = `分析完成：找到 ${analysisResults.length} 个关注者`;
+                displayResults(analysisResults);
+            } else {
+                statusDiv.textContent = `分析失败：${response.error}`;
+            }
+            
+        } catch (error) {
+            console.error('分析错误:', error);
+            statusDiv.textContent = `错误：${error.message}`;
+            
+            // 检查是否内容脚本未加载
+            if (error.message.includes('Receiving end does not exist')) {
+                statusDiv.textContent = '错误：请刷新X页面后重试';
+            }
+        } finally {
+            progressDiv.style.display = 'none';
+            analyzeBtn.disabled = false;
+            updateUnfollowButton();
+        }
+    });
+    
+    // 取关按钮点击事件
+    unfollowBtn.addEventListener('click', async function() {
+        if (selectedUsers.size === 0) {
+            statusDiv.textContent = '请先选择要取关的博主';
+            return;
+        }
+        
+        if (!confirm(`确定要取关选中的 ${selectedUsers.size} 个博主吗？`)) {
+            return;
+        }
+        
+        statusDiv.textContent = '正在执行取关操作...';
+        unfollowBtn.disabled = true;
         
         try {
             // 获取当前标签页
-            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-            
-            // 发送消息给content script开始分析
-            const response = await chrome.tabs.sendMessage(tab.id, { 
-                action: 'analyzeFollowers' 
+            const [tab] = await chrome.tabs.query({ 
+                active: true, 
+                currentWindow: true 
             });
             
-            if (response && response.success) {
-                analysisResults = response.results;
-                displayResults(analysisResults);
-                resultsSection.style.display = 'block';
+            // 发送取关请求
+            let successCount = 0;
+            for (const username of selectedUsers) {
+                const response = await chrome.tabs.sendMessage(tab.id, { 
+                    action: 'unfollow', 
+                    username: username 
+                });
                 
-                // 滚动到结果区域
-                resultsSection.scrollIntoView({ behavior: 'smooth' });
-            } else {
-                showError('分析失败，请确保在X关注页面');
-            }
-        } catch (error) {
-            console.error('分析错误:', error);
-            showError('分析失败: ' + error.message);
-        } finally {
-            analyzeBtn.disabled = false;
-            analyzeBtn.textContent = '🚀 开始分析关注列表';
-            progressContainer.style.display = 'none';
-        }
-    });
-
-    // 批量取关按钮点击事件
-    unfollowBtn.addEventListener('click', async function() {
-        if (selectedUsernames.size === 0) {
-            showError('请先选择要取关的博主');
-            return;
-        }
-
-        if (!confirm(`确定要取关选中的 ${selectedUsernames.size} 个博主吗？此操作不可撤销。`)) {
-            return;
-        }
-
-        unfollowBtn.disabled = true;
-        unfollowBtn.textContent = '取关中...';
-
-        try {
-            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-            
-            const response = await chrome.tabs.sendMessage(tab.id, { 
-                action: 'unfollowSelected',
-                usernames: Array.from(selectedUsernames)
-            });
-            
-            if (response && response.success) {
-                alert(`成功取关 ${response.unfollowedCount} 个博主`);
+                if (response.success) {
+                    successCount++;
+                }
                 
-                // 更新结果列表
-                analysisResults = analysisResults.filter(result => 
-                    !selectedUsernames.has(result.username)
-                );
-                displayResults(analysisResults);
-                selectedUsernames.clear();
-                updateSelectedCount();
-            } else {
-                showError('取关失败: ' + (response?.error || '未知错误'));
+                // 避免过快操作
+                await delay(1000);
             }
+            
+            statusDiv.textContent = `取关完成：成功 ${successCount}/${selectedUsers.size}`;
+            selectedUsers.clear();
+            updateUnfollowButton();
+            
+            // 重新分析
+            analyzeBtn.click();
+            
         } catch (error) {
             console.error('取关错误:', error);
-            showError('取关失败: ' + error.message);
+            statusDiv.textContent = `取关失败：${error.message}`;
         } finally {
-            unfollowBtn.disabled = selectedUsernames.size === 0;
-            unfollowBtn.textContent = `⚡ 批量取关选中博主 (${selectedUsernames.size})`;
+            unfollowBtn.disabled = false;
         }
     });
-
+    
+    // 设置按钮点击事件
+    settingsBtn.addEventListener('click', function() {
+        // 显示设置界面
+        alert('设置功能开发中...\n当前使用DeepSeek AI分析。');
+    });
+    
     // 显示分析结果
     function displayResults(results) {
-        resultsList.innerHTML = '';
-        totalCount.textContent = results.length;
+        resultsDiv.innerHTML = '';
         
-        const suggested = results.filter(r => r.confidence >= 70).length;
-        suggestedCount.textContent = suggested;
+        if (!results || results.length === 0) {
+            resultsDiv.innerHTML = '<div class="no-results">未找到分析结果</div>';
+            return;
+        }
         
+        // 按置信度排序
+        results.sort((a, b) => b.confidence - a.confidence);
+        
+        // 显示每个结果
         results.forEach((result, index) => {
-            const item = createResultItem(result, index);
-            resultsList.appendChild(item);
+            const resultElement = createResultElement(result, index);
+            resultsDiv.appendChild(resultElement);
         });
-        
-        updateSelectedCount();
     }
-
-    // 创建结果项
-    function createResultItem(result, index) {
+    
+    // 创建单个结果元素
+    function createResultElement(result, index) {
         const div = document.createElement('div');
         div.className = 'result-item';
         
-        const confidenceClass = result.confidence >= 80 ? 'high' : 
-                              result.confidence >= 60 ? 'medium' : 'low';
+        // 根据置信度设置样式
+        if (result.confidence >= 70) {
+            div.classList.add('crypto-high');
+        } else if (result.confidence >= 40) {
+            div.classList.add('crypto-medium');
+        } else {
+            div.classList.add('crypto-low');
+        }
+        
+        // 是否被选中
+        if (selectedUsers.has(result.username)) {
+            div.classList.add('selected');
+        }
+        
+        // 构建HTML内容
+        const confidenceColor = getConfidenceColor(result.confidence);
+        const cryptoText = result.isCrypto ? '是' : '否';
+        const sourceText = result.source === 'deepseek' ? '🤖 AI分析' : '⚠️ 降级分析';
         
         div.innerHTML = `
-            <input type="checkbox" class="checkbox" id="check-${index}" 
-                   ${result.confidence >= 70 ? 'checked' : ''}>
-            <div class="username">${result.displayName || result.username}</div>
-            <div class="confidence ${confidenceClass}">${result.confidence}%</div>
+            <div class="result-header">
+                <input type="checkbox" class="user-checkbox" 
+                       data-username="${result.username}"
+                       ${result.isCrypto ? 'checked' : ''}>
+                <span class="username">@${result.username}</span>
+                <span class="confidence" style="color: ${confidenceColor}">
+                    ${result.confidence}%
+                </span>
+            </div>
+            <div class="result-body">
+                <div class="display-name">${result.displayName || '无显示名称'}</div>
+                <div class="description">${result.description || '无简介'}</div>
+                <div class="analysis-info">
+                    <span class="crypto-status">Crypto博主: ${cryptoText}</span>
+                    <span class="source">${sourceText}</span>
+                </div>
+                ${result.reasons && result.reasons.length > 0 ? `
+                <div class="reasons">
+                    <strong>判断依据:</strong>
+                    <ul>
+                        ${result.reasons.map(reason => `<li>${reason}</li>`).join('')}
+                    </ul>
+                </div>
+                ` : ''}
+                ${result.analysis ? `
+                <div class="analysis">
+                    <strong>分析说明:</strong> ${result.analysis}
+                </div>
+                ` : ''}
+            </div>
         `;
         
-        const checkbox = div.querySelector('.checkbox');
-        checkbox.addEventListener('change', function() {
-            if (this.checked) {
-                selectedUsernames.add(result.username);
-            } else {
-                selectedUsernames.delete(result.username);
-            }
-            updateSelectedCount();
+        // 添加点击事件
+        div.addEventListener('click', function(e) {
+            if (e.target.type === 'checkbox') return;
+            
+            const checkbox = div.querySelector('.user-checkbox');
+            checkbox.checked = !checkbox.checked;
+            toggleUserSelection(result.username, checkbox.checked);
         });
         
-        // 默认选中高置信度的
-        if (result.confidence >= 70) {
-            selectedUsernames.add(result.username);
-        }
+        // 复选框事件
+        const checkbox = div.querySelector('.user-checkbox');
+        checkbox.addEventListener('change', function(e) {
+            e.stopPropagation();
+            toggleUserSelection(result.username, this.checked);
+        });
         
         return div;
     }
-
-    // 更新选中计数
-    function updateSelectedCount() {
-        selectedCount.textContent = selectedUsernames.size;
-        unfollowBtn.disabled = selectedUsernames.size === 0;
-        unfollowBtn.textContent = `⚡ 批量取关选中博主 (${selectedUsernames.size})`;
+    
+    // 切换用户选择
+    function toggleUserSelection(username, isSelected) {
+        if (isSelected) {
+            selectedUsers.add(username);
+        } else {
+            selectedUsers.delete(username);
+        }
+        
+        // 更新UI
+        updateUnfollowButton();
+        
+        // 更新结果项样式
+        const items = document.querySelectorAll('.result-item');
+        items.forEach(item => {
+            const itemUsername = item.querySelector('.username').textContent.substring(1);
+            if (itemUsername === username) {
+                item.classList.toggle('selected', isSelected);
+            }
+        });
     }
-
-    // 显示错误
-    function showError(message) {
-        const status = document.querySelector('.status');
-        status.innerHTML = `
-            <div class="status-title" style="color: #c62828;">❌ 错误</div>
-            <div class="status-desc">${message}</div>
-        `;
-        status.style.background = '#ffebee';
+    
+    // 更新取关按钮状态
+    function updateUnfollowButton() {
+        const count = selectedUsers.size;
+        unfollowBtn.disabled = count === 0;
+        unfollowBtn.textContent = count > 0 ? 
+            `批量取关 (${count}个)` : '批量取关';
     }
-
-    // 更新进度条
-    function updateProgress(percent) {
-        progressBar.style.width = percent + '%';
+    
+    // 更新UI状态
+    function updateUI() {
+        unfollowBtn.disabled = selectedUsers.size === 0;
     }
-
-    // 模拟进度更新（实际由content script控制）
-    window.updateProgress = updateProgress;
+    
+    // 监听进度更新
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        if (request.action === 'updateProgress') {
+            const progress = request.progress;
+            progressBar.style.width = `${progress}%`;
+            progressText.textContent = `分析中... ${progress}% (${request.processed}/${request.total})`;
+        }
+    });
+    
+    // 工具函数
+    function getConfidenceColor(confidence) {
+        if (confidence >= 70) return '#e74c3c'; // 红色：高置信度Crypto
+        if (confidence >= 40) return '#f39c12'; // 橙色：中等置信度
+        return '#2ecc71'; // 绿色：低置信度/非Crypto
+    }
+    
+    function delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    
+    // 初始化状态
+    console.log('X Smart Unfollow AI版弹出窗口已加载');
 });

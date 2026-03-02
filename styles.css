@@ -1,330 +1,355 @@
-/* X Smart Unfollow - 样式文件 */
+/* X Smart Unfollow - 样式表（AI分析版本） */
 
-/* 页面标记样式 */
-.x-unfollow-marker {
-    position: relative;
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    margin: 0;
+    padding: 16px;
+    width: 400px;
+    min-height: 500px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #333;
 }
 
-.x-unfollow-marker::after {
-    content: '🔍';
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 14px;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-}
-
-.x-unfollow-marker.crypto-high {
-    background-color: rgba(255, 235, 238, 0.3) !important;
-    border-left: 3px solid #f44336 !important;
-}
-
-.x-unfollow-marker.crypto-high::after {
-    content: '💰';
-    color: #f44336;
-}
-
-.x-unfollow-marker.crypto-medium {
-    background-color: rgba(255, 243, 224, 0.3) !important;
-    border-left: 3px solid #ff9800 !important;
-}
-
-.x-unfollow-marker.crypto-medium::after {
-    content: '⚠️';
-    color: #ff9800;
-}
-
-.x-unfollow-marker.crypto-low {
-    background-color: rgba(232, 245, 233, 0.3) !important;
-    border-left: 3px solid #4caf50 !important;
-}
-
-.x-unfollow-marker.crypto-low::after {
-    content: '✅';
-    color: #4caf50;
-}
-
-/* 分析覆盖层 */
-.x-unfollow-overlay {
-    position: fixed;
-    top: 20px;
-    right: 20px;
+.container {
     background: white;
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    padding: 16px;
-    z-index: 999999;
-    min-width: 300px;
-    max-width: 400px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
-.x-unfollow-overlay-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid #e0e0e0;
-}
-
-.x-unfollow-overlay-logo {
-    width: 32px;
-    height: 32px;
-    margin-right: 12px;
-    border-radius: 8px;
-    background: linear-gradient(135deg, #1DA1F2, #794BC4);
-}
-
-.x-unfollow-overlay-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #1a1a1a;
-}
-
-.x-unfollow-overlay-subtitle {
-    font-size: 12px;
-    color: #666;
-    margin-top: 2px;
-}
-
-.x-unfollow-overlay-progress {
-    margin: 16px 0;
-}
-
-.x-unfollow-progress-bar {
-    height: 6px;
-    background: #e0e0e0;
-    border-radius: 3px;
-    overflow: hidden;
-}
-
-.x-unfollow-progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #1DA1F2, #794BC4);
-    width: 0%;
-    transition: width 0.3s ease;
-}
-
-.x-unfollow-progress-text {
-    font-size: 12px;
-    color: #666;
-    margin-top: 4px;
+.header {
     text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
 }
 
-.x-unfollow-overlay-results {
-    max-height: 300px;
-    overflow-y: auto;
-    margin: 16px 0;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
+.header h1 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 22px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
-.x-unfollow-result-item {
+.header .subtitle {
+    color: #7f8c8d;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+.controls {
     display: flex;
-    align-items: center;
-    padding: 12px;
-    border-bottom: 1px solid #f0f0f0;
-    transition: background-color 0.2s;
+    gap: 10px;
+    margin-bottom: 20px;
 }
 
-.x-unfollow-result-item:hover {
-    background-color: #f8f9fa;
-}
-
-.x-unfollow-result-item:last-child {
-    border-bottom: none;
-}
-
-.x-unfollow-result-checkbox {
-    margin-right: 12px;
-}
-
-.x-unfollow-result-info {
+.btn {
     flex: 1;
-    min-width: 0;
-}
-
-.x-unfollow-result-username {
-    font-weight: 500;
-    color: #333;
-    margin-bottom: 2px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.x-unfollow-result-displayname {
-    font-size: 11px;
-    color: #666;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.x-unfollow-result-confidence {
-    margin-left: 12px;
-    font-size: 12px;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-weight: 500;
-    min-width: 50px;
-    text-align: center;
-}
-
-.x-unfollow-confidence-high {
-    background: #e8f5e8;
-    color: #2e7d32;
-}
-
-.x-unfollow-confidence-medium {
-    background: #fff3e0;
-    color: #ef6c00;
-}
-
-.x-unfollow-confidence-low {
-    background: #f5f5f5;
-    color: #757575;
-}
-
-.x-unfollow-overlay-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 16px;
-}
-
-.x-unfollow-button {
-    flex: 1;
-    padding: 10px 16px;
+    padding: 12px 20px;
     border: none;
     border-radius: 8px;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
-    text-align: center;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
-.x-unfollow-button-primary {
-    background: linear-gradient(135deg, #1DA1F2, #794BC4);
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
 }
 
-.x-unfollow-button-primary:hover {
-    opacity: 0.9;
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-secondary {
+    background: #f8f9fa;
+    color: #495057;
+    border: 1px solid #dee2e6;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: #e9ecef;
     transform: translateY(-1px);
 }
 
-.x-unfollow-button-secondary {
-    background: #f0f0f0;
-    color: #333;
+.btn-danger {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+    color: white;
 }
 
-.x-unfollow-button-secondary:hover {
-    background: #e0e0e0;
+.btn-danger:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
 }
 
-.x-unfollow-button:disabled {
+.btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     transform: none !important;
 }
 
-.x-unfollow-stats {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-    color: #666;
-    margin-bottom: 12px;
+.progress-container {
+    margin-bottom: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    display: none;
 }
 
-.x-unfollow-close {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 24px;
-    height: 24px;
-    border: none;
-    background: none;
+.progress-bar {
+    height: 8px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    border-radius: 4px;
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    text-align: center;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #7f8c8d;
+}
+
+.status {
+    text-align: center;
+    padding: 10px;
+    margin-bottom: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #495057;
+    min-height: 20px;
+}
+
+.results {
+    max-height: 400px;
+    overflow-y: auto;
+    border-radius: 8px;
+    background: #f8f9fa;
+    padding: 10px;
+}
+
+.no-results {
+    text-align: center;
+    padding: 40px 20px;
+    color: #7f8c8d;
+    font-style: italic;
+}
+
+.result-item {
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
     cursor: pointer;
-    font-size: 18px;
-    color: #999;
+}
+
+.result-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.result-item.selected {
+    border-color: #667eea;
+    background: #f8f9ff;
+}
+
+.result-item.crypto-high {
+    border-left: 4px solid #e74c3c;
+}
+
+.result-item.crypto-medium {
+    border-left: 4px solid #f39c12;
+}
+
+.result-item.crypto-low {
+    border-left: 4px solid #2ecc71;
+}
+
+.result-header {
     display: flex;
     align-items: center;
-    justify-content: center;
-    border-radius: 4px;
+    gap: 10px;
+    margin-bottom: 10px;
 }
 
-.x-unfollow-close:hover {
-    background: #f0f0f0;
-    color: #333;
+.user-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
 }
 
-/* 动画 */
-@keyframes x-unfollow-pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.7; }
-    100% { opacity: 1; }
+.username {
+    font-weight: 700;
+    color: #2c3e50;
+    flex: 1;
 }
 
-.x-unfollow-analyzing {
-    animation: x-unfollow-pulse 1.5s infinite;
+.confidence {
+    font-weight: 700;
+    font-size: 16px;
+    min-width: 50px;
+    text-align: right;
+}
+
+.result-body {
+    font-size: 13px;
+}
+
+.display-name {
+    font-weight: 600;
+    color: #34495e;
+    margin-bottom: 5px;
+}
+
+.description {
+    color: #7f8c8d;
+    margin-bottom: 10px;
+    line-height: 1.4;
+    max-height: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.analysis-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 12px;
+}
+
+.crypto-status {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.source {
+    color: #7f8c8d;
+    font-style: italic;
+}
+
+.reasons {
+    background: #f8f9fa;
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 10px;
+    font-size: 12px;
+}
+
+.reasons strong {
+    display: block;
+    margin-bottom: 5px;
+    color: #495057;
+}
+
+.reasons ul {
+    margin: 0;
+    padding-left: 20px;
+    color: #6c757d;
+}
+
+.reasons li {
+    margin-bottom: 3px;
+}
+
+.analysis {
+    background: #fff8e1;
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 12px;
+    color: #5d4037;
+    border-left: 3px solid #ffb300;
+}
+
+.analysis strong {
+    color: #e65100;
+}
+
+/* 滚动条样式 */
+.results::-webkit-scrollbar {
+    width: 6px;
+}
+
+.results::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.results::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 3px;
+}
+
+.results::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
 }
 
 /* 响应式调整 */
-@media (max-width: 480px) {
-    .x-unfollow-overlay {
-        top: 10px;
-        right: 10px;
-        left: 10px;
-        max-width: none;
+@media (max-width: 420px) {
+    body {
+        width: 350px;
+        padding: 12px;
+    }
+    
+    .container {
+        padding: 15px;
+    }
+    
+    .controls {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
     }
 }
 
-/* 暗色模式支持 */
-@media (prefers-color-scheme: dark) {
-    .x-unfollow-overlay {
-        background: #1a1a1a;
-        color: #e0e0e0;
-    }
-    
-    .x-unfollow-overlay-title {
-        color: #e0e0e0;
-    }
-    
-    .x-unfollow-overlay-subtitle {
-        color: #999;
-    }
-    
-    .x-unfollow-result-item {
-        border-bottom-color: #333;
-    }
-    
-    .x-unfollow-result-item:hover {
-        background-color: #2a2a2a;
-    }
-    
-    .x-unfollow-result-username {
-        color: #e0e0e0;
-    }
-    
-    .x-unfollow-result-displayname {
-        color: #999;
-    }
-    
-    .x-unfollow-button-secondary {
-        background: #333;
-        color: #e0e0e0;
-    }
-    
-    .x-unfollow-button-secondary:hover {
-        background: #444;
-    }
-    
-    .x-unfollow-close:hover {
-        background: #333;
-        color: #e0e0e0;
-    }
+/* 加载动画 */
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.loading {
+    animation: pulse 1.5s infinite;
+}
+
+/* 图标样式 */
+.icon {
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.icon-ai {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    position: relative;
+}
+
+.icon-ai::after {
+    content: "AI";
+    color: white;
+    font-size: 8px;
+    font-weight: bold;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
